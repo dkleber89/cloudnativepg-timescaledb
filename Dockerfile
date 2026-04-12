@@ -1,32 +1,25 @@
-#syntax=docker/dockerfile:1.23
+ARG CNPG="16.13-system-bullseye"
 
-ARG CLOUDNATIVEPG_VERSION
+FROM ghcr.io/cloudnative-pg/postgresql:${CNPG}
 
-FROM ghcr.io/cloudnative-pg/postgresql:$CLOUDNATIVEPG_VERSION
 USER root
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+SHELL ["/bin/bash", "-l", "-c"]
 
-ARG POSTGRES_VERSION
-ARG TIMESCALE_VERSION
-RUN <<EOT
-  set -eux
+ARG TS="2.26.2"
+ARG DEB="11-1613"
 
-  # Install dependencies
-  apt-get update
-  apt-get install -y --no-install-recommends curl
+# Install Timescale from https://packagecloud.io/timescale/timescaledb and search for "timescaledb-2-postgresql-"
+RUN apt update && apt install -y --no-install-recommends curl
+RUN curl -s https://packagecloud.io/install/repositories/timescale/timescaledb/script.deb.sh | bash
 
-  # Add Timescale apt repo
-  . /etc/os-release 2>/dev/null
-  echo "deb https://packagecloud.io/timescale/timescaledb/debian/ $VERSION_CODENAME main" >/etc/apt/sources.list.d/timescaledb.list
-  curl -Lsf https://packagecloud.io/timescale/timescaledb/gpgkey | gpg --dearmor >/etc/apt/trusted.gpg.d/timescale.gpg
+RUN PG="${CNPG:0:2}" && PKG="$PG=$TS~debian$DEB" && \
+    apt install -y --no-install-recommends \
+        timescaledb-tools timescaledb-toolkit-postgresql-$PG \
+        timescaledb-2-loader-postgresql-$PKG \
+        timescaledb-2-postgresql-$PKG
 
-  # Install Timescale
-  apt-get update
-  apt-get install -y --no-install-recommends "timescaledb-2-postgresql-$POSTGRES_VERSION=$TIMESCALE_VERSION~debian$VERSION_ID"
-
-  # Cleanup
-  apt-get purge -y curl
-  rm /etc/apt/sources.list.d/timescaledb.list /etc/apt/trusted.gpg.d/timescale.gpg
-  rm -rf /var/cache/apt/*
-EOT
+RUN apt purge -y curl
+RUN rm -rf /var/cache/apt/* /etc/apt/sources.list.d/timescaledb.list /etc/apt/trusted.gpg.d/timescale.gpg
 
 USER 26
