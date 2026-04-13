@@ -1,4 +1,5 @@
 ARG CNPG="16.13-system-bullseye"
+ENV CNPG=${CNPG}
 
 FROM ghcr.io/cloudnative-pg/postgresql:${CNPG}
 
