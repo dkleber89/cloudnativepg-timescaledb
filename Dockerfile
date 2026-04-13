@@ -1,6 +1,4 @@
 ARG CNPG="16.13-system-bullseye"
-ENV CNPG=${CNPG}
-
 FROM ghcr.io/cloudnative-pg/postgresql:${CNPG}
 
 USER root
@@ -9,8 +7,8 @@ SHELL ["/bin/bash", "-l", "-c"]
 
 ARG TS="2.26.2"
 ARG DEB="11-1613"
+ENV CNPG=${CNPG}
 
-# Install Timescale from https://packagecloud.io/timescale/timescaledb and search for "timescaledb-2-postgresql-"
 RUN apt update && apt install -y --no-install-recommends curl
 RUN curl -s https://packagecloud.io/install/repositories/timescale/timescaledb/script.deb.sh | bash
 
