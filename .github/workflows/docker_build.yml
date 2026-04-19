@@ -44,7 +44,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=2.26.2-pg16
+            type=raw,value=16-2.26.2-11-latest
 
       - name: Build and push Docker image
         id: build-and-push
